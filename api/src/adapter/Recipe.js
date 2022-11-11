@@ -3,7 +3,7 @@ const axios = require("axios");
 const { Diet, Recipe } = require("../db.js");
 const { API_PETICION } = process.env;
 
-async function getRecipe() {
+async function getApiRecipe() {
   try {
     const {
       data: { results },
@@ -14,12 +14,29 @@ async function getRecipe() {
       summary,
       points,
       veryHealthy,
-      steps:analyzedInstructions.map(({steps})=>steps.map(({step})=>step)).join('%'),
+      steps:analyzedInstructions.map(({steps})=>steps.map(({step})=>step)).join("*"),
       diets
     }));
   } catch (error) {
-    new Error(error);
+    throw {status:400,message:"No se encontro nada"};
   }
 }
 
-module.exports = { getRecipe };
+async function postDbRecipe(recipeFront,diets){
+  let recipe =await Recipe.create(recipeFront).then(recipe=>recipe.addDiet(diets));
+  console.log(recipe)
+  if(recipe){
+    return Recipe.findOne({
+      where:{id:recipe[0].recipeId},
+      include: {
+        model: Diet,
+        attributes: ["name"],
+        through: { attributes: [] },
+      },
+     });
+  }else{
+    throw {status:400,message:"Fallo la creacion de la receta"}
+  }
+}
+
+module.exports = { getApiRecipe,postDbRecipe };

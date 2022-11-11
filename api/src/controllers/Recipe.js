@@ -1,10 +1,19 @@
-const {getRecipe} = require('../adapter/Recipe.js');
+const {getApiRecipe,postDbRecipe} = require('../adapter/Recipe.js');
 
 class Recipe {
-    async getApiRecipe(req,res,next){
+    async getRecipe(req,res,next){
         try {
-            let data = await getRecipe();
+            let data = await getApiRecipe();
             res.status(200).json(data);
+        } catch (error) {
+            next(error);
+        }
+    }
+    async postRecipe(req,res,next){
+        try {
+            const {recipe,diets} = req.body;
+            const result = await postDbRecipe(recipe,diets);
+            res.status(201).json(result);
         } catch (error) {
             next(error);
         }
